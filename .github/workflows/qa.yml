@@ -1,0 +1,32 @@
+name: QA
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  static-site:
+    name: Static site checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run static QA
+        run: python3 scripts/qa_static_site.py
+
+      - name: Smoke test local server
+        run: |
+          python3 -m http.server 8000 &
+          server_pid=$!
+          trap "kill $server_pid" EXIT
+          sleep 1
+          curl --fail --silent --show-error http://127.0.0.1:8000/index.html >/dev/null
